@@ -47,7 +47,7 @@ class VKApi():
 
     def users_search(self, age_go, age_from, s_1, city):
         params = {
-            "count": 10,
+            "count": 6,
             "offset": randrange(100),
             "fields": "city,sex",
             "sex": s_1,
