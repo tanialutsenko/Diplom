@@ -45,10 +45,10 @@ class VKApi():
 
         return (user_json)
 
-    def users_search(self, age_go, age_from, s_1, city):
+    def users_search(self, age_go, age_from, s_1, city,count,offset):
         params = {
-            "count": 6,
-            "offset": randrange(100),
+            "count": count,
+            "offset": count*offset,
             "fields": "city,sex",
             "sex": s_1,
             "age_from": age_from,
@@ -208,6 +208,8 @@ def listen_user():
 vk = vk_api.VkApi(token=token_community)
 longpoll = VkLongPoll(vk)
 
+offset = 1
+
 for event in longpoll.listen():
     if event.type == VkEventType.MESSAGE_NEW and event.to_me:
         response = event.text
@@ -229,8 +231,9 @@ for event in longpoll.listen():
                     age_from = str(date)
                     city = get_city(name_user)
                     sex = get_sex(name_user)
-                    id_people_search = user_vk_name.users_search(age_go, age_from, sex, city)
-                    # session(user_id, id_people_search)
+                    count = 6
+                    id_people_search = user_vk_name.users_search(age_go, age_from, sex, city,count,offset)
+                    offset = offset + 1
                     session(user_id, id_people_search, login, password, database)
                     main(id_people_search)
                     write_msg(event.user_id, "Хотите продолжить поиск?")
@@ -239,8 +242,8 @@ for event in longpoll.listen():
                             response_2 = event.text
                             response_2_lower = response_2.lower()
                             if response_2_lower == "да":
-                                people_search_new = user_vk_name.users_search(age_go, age_from, sex, city)
-                                # session(user_id, people_search_new)
+                                people_search_new = user_vk_name.users_search(age_go, age_from, sex, city,count,offset)
+                                offset = offset + 1
                                 session(user_id, people_search_new, login, password, database)
                                 main(people_search_new)
                                 write_msg(event.user_id, "Хотите продолжить поиск?")

@@ -7,7 +7,7 @@ Base = declarative_base()
 
 
 class Course(Base):
-     __tablename__ = "result"
+     __tablename__ = "result_3"
 
      id = sq.Column(sq.Integer, primary_key=True)
      id_user = sq.Column(sq.Integer)
