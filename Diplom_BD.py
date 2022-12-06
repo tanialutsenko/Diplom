@@ -218,8 +218,7 @@ offset = 1
 
 for event in longpoll.listen():
     if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-        response = event.text
-        user_vk_name = VKApi()  #  экземпляр класса
+        user_vk_name = VKApi()
         name_user = user_vk_name.users_get_name(event.user_id)
         try:
             list_user = name_user['response']
@@ -248,7 +247,6 @@ for event in longpoll.listen():
                         flag = main(id_people_search)
                         try:
                             flag = "OK"
-                            print(flag)
                             write_msg(event.user_id, "Хотите продолжить поиск?")
                         except:
                             write_msg(event.user_id, " Извините, ошибка сервера((")
@@ -267,7 +265,6 @@ for event in longpoll.listen():
                                     flag = main(people_search_new)
                                     try:
                                         flag = "OK"
-                                        print(flag)
                                         write_msg(event.user_id, "Хотите продолжить поиск?")
                                     except:
                                         write_msg(event.user_id, " Извините, ошибка сервера((")
