@@ -42,8 +42,8 @@ class VKApi():
         }
         response = requests.get(f"{self.base_url}/method/users.get", params={**self.params, **params})
         user_json = response.json()
-
         return (user_json)
+
 
     def users_search(self, age_go, age_from, s_1, city,count,offset):
         params = {
@@ -57,6 +57,7 @@ class VKApi():
             "status": 1
         }
         response = requests.get(f"{self.base_url}/method/users.search", params={**self.params, **params})
+
         user_search= response.json()
         list_id = []
         black_list_id = []
@@ -78,6 +79,7 @@ class VKApi():
         dict_name_id = {list_id[i]: list_name[i] for i in range(len(list_id))}
         return (dict_name_id)
 
+
     def photos_get(self, id):
         params = {
             "owner_id": id,
@@ -90,7 +92,6 @@ class VKApi():
 
 def get_age(response_user):
     currentYear = int(datetime.now().year)
-    print(currentYear)
     date = 20
     for r in response_user['response']:
         if 'bdate' in r:
@@ -151,6 +152,11 @@ def main(id_people_search):
 
     for key, value in id_people_search.items():
         response_photo = user_vk_name.photos_get(key)
+        try:
+            list_user = response_photo['response']
+            flag = "OK"
+        except:
+            flag = "Error"
         id = key
         name = value
         id_profile_link = f'https://vk.com/id{id}'
@@ -188,7 +194,7 @@ def main(id_people_search):
             access_key = list_photo[2]
 
             send_photo(event.user_id, f'photo{owner_id}_{photo_id}_{access_key}')
-
+    return(flag)
 def write_msg(user_id, message):
     vk.method('messages.send',
               {'user_id': user_id, 'message': message, 'random_id': randrange(10 ** 7)})
@@ -213,17 +219,20 @@ offset = 1
 for event in longpoll.listen():
     if event.type == VkEventType.MESSAGE_NEW and event.to_me:
         response = event.text
-        reesponse_lower = response.lower()
         user_vk_name = VKApi()  #  экземпляр класса
         name_user = user_vk_name.users_get_name(event.user_id)
+        try:
+            list_user = name_user['response']
+        except:
+            write_msg(event.user_id, " Извините, ошибка сервера((")
+
         for r in name_user['response']:
             name = r['first_name']
         write_msg(event.user_id, f"Привет, {name} ! Я могу найти вам пару.Хотите начать  поиск?")
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 response_1 = event.text
-                response_1_lower = response_1.lower()
-                if response_1_lower == "да":
+                if response_1.lower() == "да":
                     user_id = event.user_id
                     currentYear = int(datetime.now().year)
                     date = get_age(name_user)
@@ -234,27 +243,45 @@ for event in longpoll.listen():
                     count = 6
                     id_people_search = user_vk_name.users_search(age_go, age_from, sex, city,count,offset)
                     offset = offset + 1
-                    session(user_id, id_people_search, login, password, database)
-                    main(id_people_search)
-                    write_msg(event.user_id, "Хотите продолжить поиск?")
+                    if type(id_people_search) is dict:
+                        session(user_id, id_people_search, login, password, database)
+                        flag = main(id_people_search)
+                        try:
+                            flag = "OK"
+                            print(flag)
+                            write_msg(event.user_id, "Хотите продолжить поиск?")
+                        except:
+                            write_msg(event.user_id, " Извините, ошибка сервера((")
+
+                    else:
+                        write_msg(event.user_id, " Извините, ошибка сервера((")
+
                     for event in longpoll.listen():
                         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                             response_2 = event.text
-                            response_2_lower = response_2.lower()
-                            if response_2_lower == "да":
+                            if response_2.lower() == "да":
                                 people_search_new = user_vk_name.users_search(age_go, age_from, sex, city,count,offset)
                                 offset = offset + 1
-                                session(user_id, people_search_new, login, password, database)
-                                main(people_search_new)
-                                write_msg(event.user_id, "Хотите продолжить поиск?")
+                                if type(people_search_new) is dict:
+                                    session(user_id, id_people_search, login, password, database)
+                                    flag = main(people_search_new)
+                                    try:
+                                        flag = "OK"
+                                        print(flag)
+                                        write_msg(event.user_id, "Хотите продолжить поиск?")
+                                    except:
+                                        write_msg(event.user_id, " Извините, ошибка сервера((")
+                                else:
+                                    write_msg(event.user_id, " Извините, ошибка сервера((")
+
                                 continue
-                            if response_2_lower == "нет":
+                            if response_2.lower() == "нет":
                                 write_msg(event.user_id, "Пока((")
                                 break
                             else:
                                 write_msg(event.user_id, "Не понял вашего ответа...Вы хотите продолжить поиск?")
 
-                if response_1_lower == "нет":
+                if response_1.lower() == "нет":
                     write_msg(event.user_id, "Пока((")
 
                 break

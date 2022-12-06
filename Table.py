@@ -43,7 +43,6 @@ def session(user_id,id_people_search,login,password,database):
           number_1 = str(number)
           number_strip = number_1.strip("(,)")
           number_int = int(number_strip)
-          print(number_int)
           list_all_faind.append(number_int)
 
 
