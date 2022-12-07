@@ -59,6 +59,11 @@ class VKApi():
         response = requests.get(f"{self.base_url}/method/users.search", params={**self.params, **params})
 
         user_search= response.json()
+        try:
+            list_respons = user_search['response']
+            marker = "OK"
+        except:
+            marker = "Error"
         list_id = []
         black_list_id = []
         list_name = []
@@ -77,7 +82,7 @@ class VKApi():
                                 full_name = f'{first_name} {last_name}'
                                 list_name.append(full_name)
         dict_name_id = {list_id[i]: list_name[i] for i in range(len(list_id))}
-        return (dict_name_id)
+        return (dict_name_id,marker)
 
 
     def photos_get(self, id):
@@ -224,7 +229,7 @@ for event in longpoll.listen():
             list_user = name_user['response']
         except:
             write_msg(event.user_id, " Извините, ошибка сервера((")
-
+            continue
         for r in name_user['response']:
             name = r['first_name']
         write_msg(event.user_id, f"Привет, {name} ! Я могу найти вам пару.Хотите начать  поиск?")
@@ -240,9 +245,11 @@ for event in longpoll.listen():
                     city = get_city(name_user)
                     sex = get_sex(name_user)
                     count = 6
-                    id_people_search = user_vk_name.users_search(age_go, age_from, sex, city,count,offset)
+                    people_search_out = user_vk_name.users_search(age_go, age_from, sex, city, count, offset)
+                    id_people_search = people_search_out[0]
+                    marker = people_search_out[1]
                     offset = offset + 1
-                    if len(id_people_search) != 0:
+                    if marker == "OK":
                         session(user_id, id_people_search, login, password, database)
                         flag = main(id_people_search)
                         try:
@@ -250,17 +257,19 @@ for event in longpoll.listen():
                             write_msg(event.user_id, "Хотите продолжить поиск?")
                         except:
                             write_msg(event.user_id, " Извините, ошибка сервера((")
-
+                            continue
                     else:
                         write_msg(event.user_id, " Извините, ошибка сервера((")
-
+                        continue
                     for event in longpoll.listen():
                         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                             response_2 = event.text
                             if response_2.lower() == "да":
-                                people_search_new = user_vk_name.users_search(age_go, age_from, sex, city,count,offset)
+                                people_search_out = user_vk_name.users_search(age_go, age_from, sex, city, count,offset)
+                                people_search_new = people_search_out[0]
+                                marker = people_search_out[1]
                                 offset = offset + 1
-                                if len(people_search_new) != 0:
+                                if marker == "OK":
                                     session(user_id, id_people_search, login, password, database)
                                     flag = main(people_search_new)
                                     try:
@@ -268,16 +277,17 @@ for event in longpoll.listen():
                                         write_msg(event.user_id, "Хотите продолжить поиск?")
                                     except:
                                         write_msg(event.user_id, " Извините, ошибка сервера((")
+                                        continue
                                 else:
                                     write_msg(event.user_id, " Извините, ошибка сервера((")
-
+                                    continue
                                 continue
                             if response_2.lower() == "нет":
                                 write_msg(event.user_id, "Пока((")
                                 break
                             else:
                                 write_msg(event.user_id, "Не понял вашего ответа...Вы хотите продолжить поиск?")
-
+                                continue
                 if response_1.lower() == "нет":
                     write_msg(event.user_id, "Пока((")
 
