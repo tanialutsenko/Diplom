@@ -242,7 +242,7 @@ for event in longpoll.listen():
                     count = 6
                     id_people_search = user_vk_name.users_search(age_go, age_from, sex, city,count,offset)
                     offset = offset + 1
-                    if type(id_people_search) is dict:
+                    if len(id_people_search) != 0:
                         session(user_id, id_people_search, login, password, database)
                         flag = main(id_people_search)
                         try:
@@ -260,7 +260,7 @@ for event in longpoll.listen():
                             if response_2.lower() == "да":
                                 people_search_new = user_vk_name.users_search(age_go, age_from, sex, city,count,offset)
                                 offset = offset + 1
-                                if type(people_search_new) is dict:
+                                if len(people_search_new) != 0:
                                     session(user_id, id_people_search, login, password, database)
                                     flag = main(people_search_new)
                                     try:
